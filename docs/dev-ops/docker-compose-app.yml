@@ -1,0 +1,30 @@
+# /usr/local/bin/docker-compose -f /docs/dev-ops/environment/environment-docker-compose-2.4.yml up -d
+version: '3.8'
+# docker-compose -f docker-compose-app.yml up -d
+services:
+  remote-debug-springboot-app:
+    image: sangy/remote-debug-springboot:1.0
+    container_name: remote-debug-springboot-app
+    restart: on-failure
+    ports:
+      - "5005:5005"
+      - "8080:8080"
+    environment:
+      - TZ=PRC
+      - SERVER_PORT=8080
+      # 2c4g 配置，4c8g 翻倍，-Xms4096m -Xmx4096m | -Xmx –Xms：指定java堆最大值（默认值是物理内存的1/4(<1GB)）和初始java堆最小值（默认值是物理内存的1/64(<1GB))
+      - JAVA_OPTS=-Xms2048m -Xmx2048m
+      - JAVA_REMOTE_DEBUG=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
+    volumes:
+      - ./log:/data/log
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
